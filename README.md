@@ -1,2 +1,2 @@
 # exercises
-Activity of Application Development course
+Repositories for my activities in Application Development course
