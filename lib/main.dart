@@ -72,9 +72,7 @@ class TaskListPage extends StatelessWidget {
             priority: t['priority']! as String,
             dueDate: t['dueDate'] as String?,
             assignee: t['assignee'] as String?,
-            tags: t['tags'] != null
-                ? List<String>.from(t['tags']! as List)
-                : null,
+            tags: (t['tags'] as List<dynamic>?)?.cast<String>(),
           );
         },
       ),
@@ -86,46 +84,78 @@ class TaskListPage extends StatelessWidget {
   }
 
   void _openAddModal(BuildContext context) {
+    final titleController = TextEditingController(text: 'Weekly sync notes');
+    final descController = TextEditingController(text: 'Discuss weekly updates');
+    String selectedPriority = 'High';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add Task', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                const TextField(
-                  decoration: InputDecoration(labelText: 'Title'),
-                ),
-                const SizedBox(height: 8),
-                const TextField(
-                  maxLines: 2,
-                  decoration: InputDecoration(labelText: 'Description'),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Create (UI only)'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-          ),
-        );
-      },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Add Task', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Title'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: descController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButton<String>(
+                    value: selectedPriority,
+                    isExpanded: true,
+                    items: ['High', 'Medium', 'Low']
+                        .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => selectedPriority = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade700,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '(UI-only) Task "${titleController.text}" created with priority $selectedPriority',
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          child: const Text('Create (UI-only)'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -179,12 +209,16 @@ class TaskCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 6),
-            Text(description, maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(
+              description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -205,22 +239,6 @@ class TaskCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (tags != null && tags!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                children: tags!
-                    .map(
-                      (tag) => Chip(
-                        label: Text(tag),
-                        backgroundColor: Colors.blue.shade50.withValues(
-                          alpha: 0.6,
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ],
           ],
         ),
       ),
@@ -229,12 +247,12 @@ class TaskCard extends StatelessWidget {
 }
 
 /// ---------------------------
-/// Small private sub-widget: PriorityBadge
+/// Small private sub-widget
 /// ---------------------------
 class _PriorityBadge extends StatelessWidget {
   final String priority;
 
-  const _PriorityBadge({super.key, required this.priority});
+  const _PriorityBadge({required this.priority});
 
   Color get _color =>
       priority.toLowerCase() == 'high' ? Colors.blue.shade800 : Colors.black54;
@@ -269,7 +287,7 @@ class IconLabel extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    this.color = const Color.fromARGB(255, 0, 67, 122),
+    this.color,
     this.iconSize = 18.0,
     this.spacing = 8.0,
   });
@@ -286,9 +304,9 @@ class IconLabel extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: effectiveColor,
-            fontWeight: FontWeight.w500,
-          ),
+                color: effectiveColor,
+                fontWeight: FontWeight.w500,
+              ),
         ),
       ],
     );
