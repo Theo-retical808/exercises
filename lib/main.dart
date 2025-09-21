@@ -151,11 +151,10 @@ class TaskCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
-                      // Personalized IconLabel with due date
+                      // small hint to show composition: IconLabel can be reused elsewhere
                       IconLabel(
-                        icon: Icons.access_time,
-                        label: 'Due Today',
-                        color: Colors.blue.shade600,
+                        icon: Icons.calendar_today_rounded,
+                        label: 'Today',
                       ),
                     ],
                   ),
@@ -168,16 +167,11 @@ class TaskCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      IconLabel(
-                        icon: Icons.person_outline,
-                        label: 'John Doe',
-                        color: Colors.black54,
-                      ),
+                      IconLabel(icon: Icons.comment, label: '2 comments'),
                       const SizedBox(width: 12),
                       IconLabel(
-                        icon: Icons.task_alt,
-                        label: '3/5 done',
-                        color: Colors.blue.shade700,
+                        icon: Icons.check_circle_outline,
+                        label: '0 done',
                       ),
                     ],
                   ),
@@ -199,9 +193,8 @@ class _PriorityBadge extends StatelessWidget {
 
   const _PriorityBadge({required this.priority});
 
-  Color get _color => priority.toLowerCase() == 'high' 
-      ? Colors.blue.shade800 
-      : Colors.black54;
+  Color get _color =>
+      priority.toLowerCase() == 'high' ? Colors.red : Colors.green;
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +213,7 @@ class _PriorityBadge extends StatelessWidget {
 }
 
 /// ---------------------------
-/// Personalized IconLabel widget with color support
+/// Simple personalized IconLabel widget
 /// ---------------------------
 class IconLabel extends StatelessWidget {
   final IconData icon;
@@ -233,7 +226,7 @@ class IconLabel extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    this.color,
+    this.color = const Color.fromARGB(255, 0, 67, 122),
     this.iconSize = 18.0,
     this.spacing = 8.0,
   });
@@ -241,15 +234,11 @@ class IconLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveColor = color ?? Theme.of(context).colorScheme.onSurface;
-    
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: iconSize,
-          color: effectiveColor,
-        ),
+        Icon(icon, size: iconSize, color: effectiveColor),
         SizedBox(width: spacing),
         Text(
           label,
