@@ -34,18 +34,28 @@ class TaskListPage extends StatelessWidget {
       'title': 'Write unit tests',
       'description': 'Cover TaskCard widget and interactive behavior.',
       'priority': 'High',
+      'dueDate': 'Today',
+      'assignee': 'Theo',
+      'tags': ['Testing', 'Flutter'],
     },
     {
       'title': 'Refactor auth',
       'description': 'Move logic into a reusable AuthService and clean up UI.',
       'priority': 'Low',
+      'dueDate': 'Next Week',
+      'assignee': 'John',
+      'tags': ['Backend', 'Security'],
     },
     {
       'title': 'Design review',
       'description': 'Prepare slides for Friday review with product.',
       'priority': 'High',
+      'dueDate': 'Friday',
+      'assignee': 'Dave',
+      'tags': ['Design', 'Review'],
     },
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,9 +67,14 @@ class TaskListPage extends StatelessWidget {
         itemBuilder: (context, i) {
           final t = _demoTasks[i];
           return TaskCard(
-            title: t['title']!,
-            description: t['description']!,
-            priority: t['priority']!,
+            title: t['title']! as String,
+            description: t['description']! as String,
+            priority: t['priority']! as String,
+            dueDate: t['dueDate'] as String?,
+            assignee: t['assignee'] as String?,
+            tags: t['tags'] != null
+                ? List<String>.from(t['tags']! as List)
+                : null,
           );
         },
       ),
@@ -118,17 +133,24 @@ class TaskListPage extends StatelessWidget {
 /// ---------------------------
 /// Widget: TaskCard (Stateless)
 /// ---------------------------
-/// You can extract this to its own file: widgets/task_card.dart
 class TaskCard extends StatelessWidget {
   final String title;
   final String description;
   final String priority;
+  final String? dueDate;
+  final String? assignee;
+  final List<String>? tags;
+  final bool isImportant;
 
   const TaskCard({
     super.key,
     required this.title,
     required this.description,
     required this.priority,
+    this.dueDate,
+    this.assignee,
+    this.tags,
+    this.isImportant = false,
   });
 
   @override
@@ -137,49 +159,68 @@ class TaskCard extends StatelessWidget {
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium,
+            // Top row: Priority badge and due date
+            Row(
+              children: [
+                _PriorityBadge(priority: priority),
+                const Spacer(),
+                IconLabel(
+                  icon: Icons.access_time,
+                  label: dueDate ?? 'No due date',
+                  color: priority.toLowerCase() == 'high'
+                      ? Colors.blue.shade700
+                      : Colors.black54,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(description, maxLines: 2, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                IconLabel(
+                  icon: Icons.person_outline,
+                  label: assignee ?? 'Unassigned',
+                  color: priority.toLowerCase() == 'high'
+                      ? Colors.blue.shade600
+                      : Colors.black54,
+                ),
+                const SizedBox(width: 12),
+                IconLabel(
+                  icon: Icons.task_alt,
+                  label: priority,
+                  color: priority.toLowerCase() == 'high'
+                      ? Colors.blue.shade800
+                      : Colors.black54,
+                ),
+              ],
+            ),
+            if (tags != null && tags!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                children: tags!
+                    .map(
+                      (tag) => Chip(
+                        label: Text(tag),
+                        backgroundColor: Colors.blue.shade50.withValues(
+                          alpha: 0.6,
                         ),
                       ),
-                      // small hint to show composition: IconLabel can be reused elsewhere
-                      IconLabel(
-                        icon: Icons.calendar_today_rounded,
-                        label: 'Today',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      IconLabel(icon: Icons.comment, label: '2 comments'),
-                      const SizedBox(width: 12),
-                      IconLabel(
-                        icon: Icons.check_circle_outline,
-                        label: '0 done',
-                      ),
-                    ],
-                  ),
-                ],
+                    )
+                    .toList(),
               ),
-            ),
-            const SizedBox(width: 12),
-            _PriorityBadge(priority: priority),
+            ],
           ],
         ),
       ),
@@ -187,14 +228,16 @@ class TaskCard extends StatelessWidget {
   }
 }
 
-/// Small private sub-widget (extractable)
+/// ---------------------------
+/// Small private sub-widget: PriorityBadge
+/// ---------------------------
 class _PriorityBadge extends StatelessWidget {
   final String priority;
 
-  const _PriorityBadge({required this.priority});
+  const _PriorityBadge({super.key, required this.priority});
 
   Color get _color =>
-      priority.toLowerCase() == 'high' ? Colors.red : Colors.green;
+      priority.toLowerCase() == 'high' ? Colors.blue.shade800 : Colors.black54;
 
   @override
   Widget build(BuildContext context) {
