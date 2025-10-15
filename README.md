@@ -1,6 +1,15 @@
-# angeles_midterms_exam
+# exercises
+Repositories for my activities in Application Development course
 
-A new Flutter project.
+## Midterm Exam - Flutter Project
+
+This folder contains my midterm exam project: **angeles_midterms_exam**
+
+A Flutter mobile application demonstrating:
+- UI components and layouts
+- State management
+- Mobile app architecture
+- Cross-platform development
 
 ## Getting Started
 
